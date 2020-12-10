@@ -84,3 +84,4 @@ production:
   database: docker_on_rails2_production
   username: docker_on_rails2
   password: <%= ENV['DOCKER_ON_RAILS2_DATABASE_PASSWORD'] %>
+  advisory_locks: false # see https://help.heroku.com/UYH8N2WW/why-do-i-receive-activerecord-concurrentmigrationerror-when-running-rails-migrations-using-pgbouncer

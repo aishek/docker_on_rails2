@@ -18,5 +18,7 @@
 To run single command:
 
 `docker-compose run --rm runner bundle`
+
 `docker-compose run --rm runner yarn`
+
 `docker-compose run --rm runner rails db:setup`

@@ -1,6 +1,6 @@
 ARG RUBY_VERSION
 # See explanation below
-FROM ruby:$RUBY_VERSION-slim-buster
+FROM ruby:$RUBY_VERSION-slim-buster AS development
 
 ARG PG_MAJOR
 ARG NODE_MAJOR
@@ -64,3 +64,23 @@ RUN gem update --system && \
 RUN mkdir -p /app
 
 WORKDIR /app
+
+FROM development AS production
+
+COPY Gemfile /app
+COPY Gemfile.lock /app
+RUN bundle install
+
+COPY package.json /app
+COPY yarn.lock /app
+RUN yarn install --check-files
+
+COPY . /app
+
+RUN pwd
+RUN node -v
+RUN bundle exec rails assets:precompile
+
+EXPOSE 3000
+
+ENTRYPOINT ["./entrypoints/docker-entrypoint.sh"]

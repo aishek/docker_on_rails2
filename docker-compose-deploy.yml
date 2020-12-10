@@ -1,0 +1,73 @@
+version: '3.2'
+
+services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
+  blue: &app
+    build:
+      context: .
+      dockerfile: .dockerdev/Dockerfile
+      target: production
+      args:
+        RUBY_VERSION: '2.7.0'
+        PG_MAJOR: '11'
+        NODE_MAJOR: '13'
+        YARN_VERSION: '1.22.5'
+        BUNDLER_VERSION: '2.1.4'
+    environment:
+      - VIRTUAL_HOST=whoami.local
+      - WEB_CONCURRENCY=1
+      - NODE_ENV=production
+      - RAILS_ENV=production
+      - RAILS_LOG_TO_STDOUT=true
+      - RAILS_SERVE_STATIC_FILES=true
+      - REDIS_URL=redis://redis:6379/
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432
+      - BOOTSNAP_CACHE_DIR=/usr/local/bundle/_bootsnap
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    image: docker_on_rails2:1.0.0
+    healthcheck:
+      test: curl -sS http://localhost:3000/healthcheck || exit 1
+      interval: 30s
+      timeout: 3s
+      retries: 30
+
+  green:
+    <<: *app
+    image: docker_on_rails2:1.0.1
+
+  postgres:
+    image: postgres:10.11-alpine
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      - ../log:/root/log:cached
+    healthcheck:
+      test: "pg_isready -U postgres"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:3.2-alpine
+    volumes:
+      - redis:/data
+    ports:
+      - 6379
+    healthcheck:
+      test: redis-cli ping
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  postgres:
+  redis:

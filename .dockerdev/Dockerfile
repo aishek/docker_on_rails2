@@ -77,8 +77,6 @@ RUN yarn install --check-files
 
 COPY . /app
 
-RUN pwd
-RUN node -v
 RUN bundle exec rails assets:precompile
 
 EXPOSE 3000

@@ -27,7 +27,7 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 
   def setup
     if ENV['SELENIUM_URL']
-      self_host = "http://#{IPSocket.getaddress(Socket.gethostname)}"
+      self_host = ENV['CI'] ? "http://#{IPSocket.getaddress(Socket.gethostname)}" : 'http://host.docker.internal'
       host!(self_host)
 
       ActionMailer::Base.default_url_options ||= {}
